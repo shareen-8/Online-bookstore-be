@@ -50,7 +50,7 @@ exports.placeOrder = async (req, res) => {
 exports.getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ userId: req.user.id })
-      .populate("items.bookId", "title author price")
+      .populate("items.bookId", "title author price images description")
       .sort({ createdAt: -1 });
 
     res.json(orders);
