@@ -7,6 +7,13 @@ const app = express();
 
 // Middleware
 app.use(cors());
+app.use(cors(
+  {
+    origin:["online-bookstore-be-opal.vercel.app"],
+    methods:["POST","GET","UPDATE","DELETE"],
+    credentials: true
+  }
+))
 app.use(express.json());
 
 // Test route
