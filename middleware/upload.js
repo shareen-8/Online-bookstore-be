@@ -1,8 +1,43 @@
+// const multer = require("multer");
+// const path = require("path");
+
+// const storage = multer.diskStorage({
+//   destination: "uploads/",
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + path.extname(file.originalname));
+//   },
+// });
+
+// const upload = multer({
+//   storage,
+//   fileFilter: (req, file, cb) => {
+//     if (file.mimetype.startsWith("image")) cb(null, true);
+//     else cb(new Error("Only images allowed"));
+//   },
+// });
+
+// module.exports = upload;
+
+
+
+
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
+const os = require("os");
+
+const uploadDir = path.join(os.tmpdir(), "uploads");
+
+// Create temporary upload directory
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 const storage = multer.diskStorage({
-  destination: "uploads/",
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
   },
@@ -11,8 +46,11 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image")) cb(null, true);
-    else cb(new Error("Only images allowed"));
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only images allowed"));
+    }
   },
 });
 
