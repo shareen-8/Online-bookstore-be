@@ -5,6 +5,34 @@ require("dotenv").config();
 
 const app = express();
 
+
+
+// MongoDB Connection
+let dbConnectionPromise;
+
+const connectDB = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
+  if (!dbConnectionPromise) {
+    dbConnectionPromise = mongoose
+      .connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 15000,
+      })
+      .then(() => {
+        console.log("MongoDB connected successfully");
+      })
+      .catch((error) => {
+        dbConnectionPromise = null;
+        console.error("MongoDB connection failed:", error.message);
+        throw error;
+      });
+  }
+
+  await dbConnectionPromise;
+};
+
 // Middleware
 app.use(cors());
 const allowedOrigins = [
@@ -30,6 +58,17 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(503).json({
+      message: "Database connection failed",
+      error: error.message,
+    });
+  }
+});
 
 // Test route
 app.get("/", (req, res) => {
@@ -51,10 +90,6 @@ app.use("/uploads", express.static("uploads"));
 
 
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log(err));
 
 // Server start
 const PORT = process.env.PORT || 5000;
